@@ -32,11 +32,50 @@
             font-size: 16px;
         }
 
+        /* Tela de Início Obrigatória para o Áudio Funcionar */
+        #tela-inicial {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffe3e3 0%, #fbc2eb 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .btn-jogar {
+            background-color: #d63031;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(214, 48, 49, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn-jogar:hover {
+            transform: scale(1.05);
+        }
+
+        #conteudo-jogo {
+            display: none; /* Escondido até o clique inicial */
+            width: 100%;
+            max-width: 400px;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            max-width: 400px;
             width: 100%;
         }
 
@@ -58,7 +97,6 @@
             border-radius: 10px;
         }
 
-        /* Classe que o JS vai adicionar para girar */
         .card.flipped .card-inner {
             transform: rotateY(180deg);
         }
@@ -76,7 +114,6 @@
             box-sizing: border-box;
         }
 
-        /* Frente da Carta (Escondido o desafio) */
         .card-front {
             background: linear-gradient(135deg, #ff7675 0%, #d63031 100%);
             color: white;
@@ -85,7 +122,6 @@
             border: 3px solid #fff;
         }
 
-        /* Verso da Carta (Onde aparece o desafio) */
         .card-back {
             background-color: white;
             color: #2d3436;
@@ -99,13 +135,21 @@
 </head>
 <body>
 
-    <h1>Nosso Jogo do Amor ❤️</h1>
-    <p>Escolha uma carta por vez e cumpra o desafio...</p>
+    <audio id="musica-fundo" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="som-clique" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav"></audio>
 
-    <div class="grid-container" id="grid"></div>
+    <div id="tela-inicial">
+        <h1 style="margin-bottom: 20px;">Prontos para jogar? ❤️</h1>
+        <button class="btn-jogar" onclick="iniciarJogo()">Começar</button>
+    </div>
+
+    <div id="conteudo-jogo">
+        <h1>Nosso Jogo do Amor ❤️</h1>
+        <p>Escolha uma carta por vez e cumpra o desafio...</p>
+        <div class="grid-container" id="grid"></div>
+    </div>
 
     <script>
-        // LISTA DE DESAFIOS (Você pode mudar as frases ou posições aqui!)
         const desafios = [
             "Tire uma peça de roupa 🔞",
             "Me faça uma massagem de 3 minutos 💆‍♂️",
@@ -117,29 +161,41 @@
             "Sussurre um desejo secreto no meu ouvido 💬"
         ];
 
-        // Função para embaralhar os desafios (opcional, tire se quiser ordem fixa)
         desafios.sort(() => Math.random() - 0.5);
 
         const grid = document.getElementById('grid');
+        const musicaFundo = document.getElementById('musica-fundo');
+        const somClique = document.getElementById('som-clique');
 
-        // Criar as cartas dinamicamente
-        desafios.forEach((desafio, index) => {
+        // Configura o volume inicial (0.0 a 1.0)
+        musicaFundo.volume = 0.4; // Música de fundo mais baixa
+        somClique.volume = 0.8;   // Efeito de clique mais nítido
+
+        function iniciarJogo() {
+            // Esconde a tela inicial e mostra o jogo
+            document.getElementById('tela-inicial').style.display = 'none';
+            document.getElementById('conteudo-jogo').style.display = 'flex';
+            
+            // Tenta reproduzir a música de fundo
+            musicaFundo.play().catch(error => console.log("Erro ao tocar música:", error));
+        }
+
+        desafios.forEach((desafio) => {
             const card = document.createElement('div');
             card.classList.add('card');
             
             card.innerHTML = `
                 <div class="card-inner">
-                    <div class="card-front">
-                        ❤️
-                    </div>
-                    <div class="card-back">
-                        ${desafio}
-                    </div>
+                    <div class="card-front">❤️</div>
+                    <div class="card-back">${desafio}</div>
                 </div>
             `;
 
-            // Evento de clique para virar a carta
             card.addEventListener('click', function() {
+                // Toca o som do clique (reinicia o tempo para tocar imediatamente caso clique rápido)
+                somClique.currentTime = 0;
+                somClique.play().catch(error => console.log("Erro ao tocar som:", error));
+                
                 this.classList.toggle('flipped');
             });
 
